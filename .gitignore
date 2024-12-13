@@ -1,0 +1,4 @@
+/vendor/
+private.php
+composer.json
+composer.lock
