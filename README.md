@@ -1,6 +1,8 @@
 
 Как да ръннете сайта.
 1. Инсталирайте XAMPP и Composer
+  https://getcomposer.org/
+  https://www.apachefriends.org/
 2. Ръннете XAMPP създайте в phpMyAdmin база данни с име spotifydb , копирайте информацията от прикачения файл в базата.
 3. Клонирайте гит репото или най-добре fork-нете в \xampp\htdocs
 3. Напишете composer require jwilsson/spotify-web-api-php в папката TestSPO в терминала.
