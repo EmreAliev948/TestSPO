@@ -27,7 +27,11 @@ $options = [
         'user-library-read',  
         'user-read-playback-position',
         'user-top-read',
-        'user-read-recently-played'
+        'user-read-recently-played',
+        'app-remote-control',
+        'user-follow-modify',
+        'user-follow-read',
+        'user-read-email'
     ],
 ];
 

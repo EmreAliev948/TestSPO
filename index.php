@@ -19,6 +19,10 @@ if (isset($_GET['id'])) {
         include 'top_tracks.php';
 
     } catch (SpotifyWebAPI\SpotifyWebAPIException $e) {
+        if ($e->getCode() == 401) {
+            header('Location: login.php');
+            exit;
+        }
         echo "Error: " . $e->getMessage();
         exit;
     }

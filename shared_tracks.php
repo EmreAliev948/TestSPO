@@ -1,4 +1,9 @@
 <?php 
+$api = new SpotifyWebAPI\SpotifyWebAPI();
+$api->setAccessToken($_SESSION['accessToken']);
+
+$user = $api->me();
+$isPremium = ($user->product === 'premium');
 ?>
 
 <!DOCTYPE html>
@@ -15,7 +20,11 @@
         </form>
     </div>
     <h1>Shared Top Tracks by <?php echo $userName; ?></h1>
-    <button id="add-all-button" class="add-button">Add All to Playlist</button>
+    <?php if ($isPremium): ?>
+        <button id="add-all-button" class="add-button">Add All to Playlist</button>
+    <?php else: ?>
+        <p>You need a Spotify Premium account to add tracks to a playlist.</p>
+    <?php endif; ?>
     <div class="track-list">
         <?php foreach ($topTracks as $track): ?>
             <div class="track-item" data-uri="<?php echo $track['uri']; ?>">
@@ -35,7 +44,13 @@
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         window.onSpotifyWebPlaybackSDKReady = () => {
-            const token = '<?php echo $_SESSION['accessToken']; ?>';
+            const token = '<?php echo isset($_SESSION['accessToken']) ? $_SESSION['accessToken'] : ''; ?>';
+
+            if (!token) {
+                alert('No access token available. Please log in again.');
+                window.location.href = 'login.php';
+                return;
+            }
 
             const player = new Spotify.Player({
                 name: 'My Spotify Player',
@@ -68,6 +83,7 @@
                     });
                 });
 
+                <?php if ($isPremium): ?>
                 document.getElementById('add-all-button').addEventListener('click', () => {
                     const uris = Array.from(trackItems).map(item => item.dataset.uri);
                     player._options.getOAuthToken(access_token => {
@@ -94,7 +110,7 @@
                                 console.debug('Tracks successfully.');
                             })
                             .catch(err => {
-                                console.debug('Failed playlist.', err);
+                                console.debug('Failed tracks.', err);
                             });
                         })
                         .catch(err => {
@@ -102,6 +118,7 @@
                         });
                     });
                 });
+                <?php endif; ?>
             });
 
             player.addListener('not_ready', ({ device_id }) => {  });
