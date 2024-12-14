@@ -88,4 +88,12 @@ function storeAndDisplayTopTracks($topTracks, $userId, $spotifyId, $dbHost, $dbN
     }
 }
 
+function SpotifyEmbeded($trackUri) {
+    $trackId = str_replace('spotify:track:', '', $trackUri);
+    
+    $embedUrl = "https://open.spotify.com/embed/track/" . $trackId;
+    
+    return $embedUrl;
+}
+
 ?>

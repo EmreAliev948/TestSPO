@@ -41,13 +41,15 @@ $authorizeUrl = $session->getAuthorizeUrl($options);
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Login</title>
     <link rel="stylesheet" type="text/css" href="login.css">
     <style>
-        
+
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <h2>Login with Spotify</h2>
@@ -56,4 +58,5 @@ $authorizeUrl = $session->getAuthorizeUrl($options);
         </a>
     </div>
 </body>
+
 </html>
