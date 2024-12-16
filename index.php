@@ -7,7 +7,7 @@ session_start();
 
 if (isset($_GET['id'])) {
     $shareId = $_GET['id'];
-    displaySharedTracks($shareId, $dbHost, $dbName, $dbUser, $dbPass); 
+    displayShared($shareId, $dbHost, $dbName, $dbUser, $dbPass);
 
 } else if (isset($_SESSION['accessToken'])) {
     $api = new SpotifyWebAPI\SpotifyWebAPI();
@@ -15,7 +15,7 @@ if (isset($_GET['id'])) {
 
     try {
         $topTracks = $api->getMyTop('tracks');
-        $shareLink = storeAndDisplayTopTracks($topTracks, $_SESSION['userId'], $_SESSION['spotifyId'], $dbHost, $dbName, $dbUser, $dbPass);
+        $shareLink = storeShared($topTracks, $_SESSION['userId'], $_SESSION['spotifyId'], $dbHost, $dbName, $dbUser, $dbPass);
         include 'top_tracks.php';
 
     } catch (SpotifyWebAPI\SpotifyWebAPIException $e) {

@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-Трябва spotify премиум за запаметяване на плейлисти.
+Трябва spotify премиум за запаметяване на плейлисти.(except iframe_top_tracks.php)
 Трябва да има приложението Extension Request или да си вкаран в USER MANEGMENT-A.
 
 
