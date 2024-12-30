@@ -17,14 +17,14 @@ $options = [
         'user-read-playback-state',
         'user-modify-playback-state',
         'user-read-currently-playing',
-        'streaming',  
+        'streaming',
         'user-read-private',
         'playlist-read-collaborative',
         'playlist-modify-public',
         'playlist-read-private',
         'playlist-modify-private',
         'user-library-modify',
-        'user-library-read',  
+        'user-library-read',
         'user-read-playback-position',
         'user-top-read',
         'user-read-recently-played',
@@ -44,7 +44,7 @@ $authorizeUrl = $session->getAuthorizeUrl($options);
 
 <head>
     <title>Login</title>
-    <link rel="stylesheet" type="text/css" href="login.css">
+    <link rel="stylesheet" type="text/css" href="css/login.css">
     <style>
 
     </style>

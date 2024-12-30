@@ -3,7 +3,26 @@ $api = new SpotifyWebAPI\SpotifyWebAPI();
 $api->setAccessToken($_SESSION['accessToken']);
 
 $user = $api->me();
-$isPremium = ($user->product === 'premium');
+
+$pdo = getPDOConnection();
+$playlistData = getPlaylist($userId, $pdo);
+$playlistId = $playlistData ? $playlistData['spotify_playlist_id'] : null;
+
+if (!$playlistId) {
+    $playlist = $api->createPlaylist($user->id, [
+        'name' => 'Shared Top Tracks',
+        'description' => 'Shared tracks playlist',
+        'public' => false,
+    ]);
+    
+    $trackUris = array_map(function($track) {
+        return $track['uri'];
+    }, $topTracks);
+    
+    $api->addPlaylistTracks($playlist->id, $trackUris);
+    savePlaylist($userId, $playlist->id, $pdo);
+    $playlistId = $playlist->id;
+}
 ?>
 
 <!DOCTYPE html>
@@ -22,29 +41,50 @@ $isPremium = ($user->product === 'premium');
         </form>
     </div>
     <h1>Shared Top Tracks by <?php echo $userName; ?></h1>
-    <?php if ($isPremium): ?>
-        <button id="add-all-button" class="add-button">Add All to Playlist</button>
-    <?php else: ?>
-        <p>You need a Spotify Premium account to add tracks to a playlist.</p>
-    <?php endif; ?>
+        <div id="spotify-iframe" style="margin: 20px 0;"></div>
+    
     <div class="track-list">
         <?php foreach ($topTracks as $track): ?>
             <div class="track-item" data-uri="<?php echo $track['uri']; ?>">
                 <?php if (isset($track['image_url'])): ?>
-                    <img class="track-image" src="<?php echo $track['image_url']; ?>" alt="<?php echo $track['name']; ?>">
+                    <img class="track-image" src="<?php echo $track['image_url']; ?>" 
+                         alt="<?php echo $track['name']; ?>"
+                         onclick="updatePlayer('<?php echo $track['uri']; ?>')">
                 <?php endif; ?>
                 <h2><?php echo $track['name']; ?></h2>
                 <p>By <?php echo $track['artist']; ?></p>
                 <p>Album: <?php echo $track['album']; ?></p>
-                <?php if ($isPremium): ?>
-                    <button class="play-button">Play</button>
-                <?php else: ?>
-                    <iframe src="<?php echo SpotifyEmbeded($track['uri']); ?>" width="300" height="80" frameborder="0"
-                        allowtransparency="true" allow="encrypted-media"></iframe>
-                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     </div>
+
+    <script src="https://open.spotify.com/embed-podcast/iframe-api/v1"></script>
+    <script>
+    window.onSpotifyIframeApiReady = (IFrameAPI) => {
+        const element = document.getElementById('spotify-iframe');
+        const options = {
+            width: '100%',
+            height: '352',
+            uri: 'spotify:playlist:<?php echo $playlistId; ?>'
+        };
+        const callback = (EmbedController) => {
+            document.querySelectorAll('.track-item').forEach(track => {
+                track.addEventListener('click', () => {
+                    const uri = track.getAttribute('data-uri');
+                    EmbedController.loadUri(uri);
+                });
+            });
+        };
+        IFrameAPI.createController(element, options, callback);
+    };
+    
+    function updatePlayer(uri) {
+        const iframe = document.getElementById('spotify-iframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ uri: uri }, '*');
+        }
+    }
+    </script>
 
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>

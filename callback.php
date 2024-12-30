@@ -27,37 +27,27 @@ $_SESSION['spotifyId'] = $user->id;
 $userName = $user->display_name;
 
 try {
-    $db = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+    $db = getPDOConnection();
+    $stmt = $db->prepare("INSERT INTO users (spotify_id, name) VALUES (:spotify_id, :name) ON DUPLICATE KEY UPDATE name = :name");
+    $stmt->execute([
+        ':spotify_id' => $user->id,
+        ':name' => $userName
+    ]);
     $stmt = $db->prepare("SELECT id FROM users WHERE spotify_id = :spotify_id");
-    $stmt->bindParam(':spotify_id', $user->id);
-    $stmt->execute();
-
-    if ($stmt->rowCount() == 0) {
-        $stmt = $db->prepare("INSERT INTO users (spotify_id, name) VALUES (:spotify_id, :name)");
-        $stmt->bindParam(':spotify_id', $user->id);
-        $stmt->bindParam(':name', $userName);
-        $stmt->execute();
-        echo "Inserted new user: $userName";
+    $stmt->execute([':spotify_id' => $user->id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($row) {
+        $_SESSION['userId'] = $row['id'];
+        header('Location: index.php');
+        exit();
     } else {
-        $stmt = $db->prepare("UPDATE users SET name = :name WHERE spotify_id = :spotify_id");
-        $stmt->bindParam(':spotify_id', $user->id);
-        $stmt->bindParam(':name', $userName);
-        $stmt->execute();
-        echo "Updated user: $userName";
+        throw new Exception("Failed user ID");
     }
 
-    $stmt = $db->prepare("SELECT id FROM users WHERE spotify_id = :spotify_id");
-    $stmt->bindParam(':spotify_id', $user->id);
-    $stmt->execute();
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $_SESSION['userId'] = $row['id'];
-
-} catch (PDOException $e) {
-    echo "Database error: " . $e->getMessage();
+} catch (Exception $e) {
+    error_log("ErrOR " . $e->getMessage());
+    header('Location: login.php?error=database');
+    exit();
 }
-
-header('Location: index.php');
-die();
 ?>

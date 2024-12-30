@@ -1,88 +1,72 @@
 <?php
-function storeShared($topTracks, $userId, $spotifyId, $dbHost, $dbName, $dbUser, $dbPass)
+function storeShared($topTracks, $userId, $spotifyId)
 {
     try {
-        $db = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db = getPDOConnection();
+        $api = new SpotifyWebAPI\SpotifyWebAPI();
+        $api->setAccessToken($_SESSION['accessToken']);
 
-        $stmt = $db->prepare("SELECT id FROM users WHERE id = :user_id");
-        $stmt->bindParam(':user_id', $userId);
-        $stmt->execute();
+        $playlist = $api->createPlaylist($spotifyId, [
+            'name' => 'Top Tracks Playlist',
+            'description' => 'My top tracks playlist',
+            'public' => false,
+        ]);
 
-        if ($stmt->rowCount() == 0) {
-            $stmt = $db->prepare("INSERT INTO users (id, spotify_id) VALUES (:user_id, :spotify_id)");
-            $stmt->bindParam(':user_id', $userId);
-            $stmt->bindParam(':spotify_id', $spotifyId);
-            $stmt->execute();
-        }
+        $trackUris = array_map(function ($track) {
+            return $track->uri;
+        }, $topTracks->items);
+        $api->addPlaylistTracks($playlist->id, $trackUris);
 
-        $stmt = $db->prepare("DELETE FROM top_tracks WHERE user_id = :user_id");
-        $stmt->bindParam(':user_id', $userId);
-        $stmt->execute();
+        $stmt = $db->prepare("DELETE FROM top_tracks WHERE user_id = ?");
+        $stmt->execute([$userId]);
+        $stmt = $db->prepare("INSERT INTO top_tracks (user_id, name, artist, album, image_url, uri, playlist_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
-        $stmt = $db->prepare("INSERT INTO top_tracks (user_id, name, artist, album, image_url, uri) VALUES (:user_id, :name, :artist, :album, :image_url, :uri)");
         foreach ($topTracks->items as $track) {
-            $artistNames = implode(', ', array_column($track->artists, 'name'));
-            $imageUrl = $track->album->images[0]->url;
-
-            $stmt->bindParam(':user_id', $userId);
-            $stmt->bindParam(':name', $track->name);
-            $stmt->bindParam(':artist', $artistNames);
-            $stmt->bindParam(':album', $track->album->name);
-            $stmt->bindParam(':image_url', $imageUrl);
-            $stmt->bindParam(':uri', $track->uri);
-            $stmt->execute();
+            $stmt->execute([
+                $userId,
+                $track->name,
+                implode(', ', array_column($track->artists, 'name')),
+                $track->album->name,
+                $track->album->images[0]->url,
+                $track->uri,
+                $playlist->id
+            ]);
         }
 
         $shareId = uniqid();
+        $stmt = $db->prepare("INSERT INTO shared_tracks (user_id, share_id, playlist_id) VALUES (?, ?, ?)");
+        $stmt->execute([$userId, $shareId, $playlist->id]);
 
-        $stmt = $db->prepare("INSERT INTO shared_tracks (user_id, share_id) VALUES (:user_id, :share_id)");
-        $stmt->bindParam(':user_id', $userId);
-        $stmt->bindParam(':share_id', $shareId);
-        $stmt->execute();
-
-        $shareLink = "index.php?id=" . $shareId;
-
-        return $shareLink;
+        return "index.php?id=" . $shareId;
 
     } catch (PDOException $e) {
-        echo "Database error: " . $e->getMessage();
+        error_log("Store shared error: " . $e->getMessage());
+        return false;
     }
 }
-function displayShared($shareId, $dbHost, $dbName, $dbUser, $dbPass)
+
+function displayShared($shareId)
 {
     try {
-        $db = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $db = getPDOConnection();
 
-        $stmt = $db->prepare("SELECT user_id FROM shared_tracks WHERE share_id = :share_id");
-        $stmt->bindParam(':share_id', $shareId);
-        $stmt->execute();
+        $stmt = $db->prepare("
+            SELECT t.*, u.name as username, s.playlist_id 
+            FROM shared_tracks s
+            JOIN top_tracks t ON s.user_id = t.user_id 
+            JOIN users u ON s.user_id = u.id
+            WHERE s.share_id = ?
+        ");
+        $stmt->execute([$shareId]);
 
         if ($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $userId = $row['user_id'];
-
-            $stmt = $db->prepare("SELECT * FROM top_tracks WHERE user_id = :user_id");
-            $stmt->bindParam(':user_id', $userId);
-            $stmt->execute();
-
-            $topTracks = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            $stmt = $db->prepare("SELECT name FROM users WHERE id = :user_id");
-            $stmt->bindParam(':user_id', $userId);
-            $stmt->execute();
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            $userName = $user['name'];
-
-            include 'shared_tracks.php';
-
-        } else {
-            echo "Invalid share ID.";
+            return $stmt->fetchAll();
         }
+        return false;
 
     } catch (PDOException $e) {
-        echo "Database error: " . $e->getMessage();
+        error_log("Display shared error: " . $e->getMessage());
+        return false;
     }
 }
 
@@ -93,6 +77,32 @@ function SpotifyEmbeded($trackUri)
     $embedUrl = "https://open.spotify.com/embed/track/" . $trackId;
 
     return $embedUrl;
+}
+
+function savePlaylist($userId, $playlistId, $pdo)
+{
+    try {
+        $stmt = $pdo->prepare("INSERT INTO playlists (user_id, spotify_playlist_id, created_at) VALUES (:user_id, :playlist_id, NOW())");
+        return $stmt->execute([
+            ':user_id' => $userId,
+            ':playlist_id' => $playlistId
+        ]);
+    } catch (PDOException $e) {
+        error_log("Error saving playlist: " . $e->getMessage());
+        return false;
+    }
+}
+
+function getPlaylist($userId, $pdo)
+{
+    try {
+        $stmt = $pdo->prepare("SELECT spotify_playlist_id FROM playlists WHERE user_id = :user_id ORDER BY created_at DESC LIMIT 1");
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error getting playlist: " . $e->getMessage());
+        return false;
+    }
 }
 
 ?>
