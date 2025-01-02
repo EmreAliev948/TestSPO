@@ -128,7 +128,7 @@ function createPopular($api)
             return false;
         }
 
-        $playlist = $api->createPlaylist([
+        $playlist = $api->createPlaylist($_SESSION['spotifyId'], [
             'name' => 'Community Top Tracks - ' . date('Y-m-d'),
             'description' => 'Top tracks from our community members',
             'public' => true

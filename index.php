@@ -58,7 +58,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'topcharts') {
 <html>
 <head>
     <title>Spotify Top Tracks</title>
-    <link rel="stylesheet" type="text/css" href="/css/shared_tracks.css">
+    <link rel="stylesheet" type="text/css" href="css/shared_tracks.css">
 </head>
 <body>
     <div class="nav-buttons">
