@@ -105,4 +105,44 @@ function getPlaylist($userId, $pdo)
     }
 }
 
+function createPopular($api)
+{
+    try {
+        $db = getPDOConnection();
+        $stmt = $db->prepare("
+            SELECT top_tracks.uri, top_tracks.name, top_tracks.artist, top_tracks.user_id 
+            FROM top_tracks
+            INNER JOIN (
+                SELECT user_id, MIN(id) as first_track_id
+                FROM top_tracks
+                GROUP BY user_id
+            ) AS first_tracks 
+            ON top_tracks.user_id = first_tracks.user_id 
+            AND top_tracks.id = first_tracks.first_track_id
+        ");
+        
+        $stmt->execute();
+        $topTracks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($topTracks)) {
+            return false;
+        }
+
+        $playlist = $api->createPlaylist([
+            'name' => 'Community Top Tracks - ' . date('Y-m-d'),
+            'description' => 'Top tracks from our community members',
+            'public' => true
+        ]);
+
+        $trackUris = array_column($topTracks, 'uri');
+        $api->addPlaylistTracks($playlist->id, $trackUris);
+
+        return $playlist->id;
+
+    } catch (Exception $e) {
+        error_log("CreatePopularPlaylist error: " . $e->getMessage());
+        return false;
+    }
+}
+
 ?>
