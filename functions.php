@@ -1,14 +1,30 @@
 <?php
+function deletePlaylist($api, $name) {
+    try {
+        $playlists = $api->getUserPlaylists($api->me()->id, ['limit' => 50]);
+        foreach ($playlists->items as $playlist) {
+            if (strpos($playlist->name, $name) === 0 && $playlist->owner->id === $api->me()->id) {
+                $api->unfollowPlaylist($playlist->id);
+            }
+        }
+        return true;
+    } catch (Exception $e) {
+        error_log("Delete playlist error: " . $e->getMessage());
+        return false;
+    }
+}
+
 function storeShared($topTracks, $userId, $spotifyId)
 {
     try {
         $db = getPDOConnection();
         $api = new SpotifyWebAPI\SpotifyWebAPI();
         $api->setAccessToken($_SESSION['accessToken']);
+        deletePlaylist($api, 'My Top Tracks');
 
         $playlist = $api->createPlaylist($spotifyId, [
-            'name' => 'Top Tracks Playlist',
-            'description' => 'My top tracks playlist',
+            'name' => 'My Top Tracks',
+            'description' => 'My personal top tracks playlist',
             'public' => false,
         ]);
 
@@ -108,6 +124,8 @@ function getPlaylist($userId, $pdo)
 function createPopular($api)
 {
     try {
+        deletePlaylist($api, 'Community Top Tracks');
+
         $db = getPDOConnection();
         $stmt = $db->prepare("
             SELECT top_tracks.uri, top_tracks.name, top_tracks.artist, top_tracks.user_id 
@@ -129,7 +147,7 @@ function createPopular($api)
         }
 
         $playlist = $api->createPlaylist($_SESSION['spotifyId'], [
-            'name' => 'Community Top Tracks - ' . date('Y-m-d'),
+            'name' => 'Community Top Tracks',
             'description' => 'Top tracks from our community members',
             'public' => true
         ]);

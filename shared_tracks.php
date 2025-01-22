@@ -3,26 +3,21 @@ $api = new SpotifyWebAPI\SpotifyWebAPI();
 $api->setAccessToken($_SESSION['accessToken']);
 
 $user = $api->me();
+$userName = $topTracks[0]['username'] ?? 'Unknown User';
+deletePlaylist($api, "Shared Top Tracks by " . $userName);
 
-$pdo = getPDOConnection();
-$playlistData = getPlaylist($userId, $pdo);
-$playlistId = $playlistData ? $playlistData['spotify_playlist_id'] : null;
+$playlist = $api->createPlaylist($user->id, [
+    'name' => 'Shared Top Tracks by ' . $userName,
+    'description' => 'Shared tracks playlist by ' . $userName,
+    'public' => false,
+]);
 
-if (!$playlistId) {
-    $playlist = $api->createPlaylist($user->id, [
-        'name' => 'Shared Top Tracks',
-        'description' => 'Shared tracks playlist',
-        'public' => false,
-    ]);
-    
-    $trackUris = array_map(function($track) {
-        return $track['uri'];
-    }, $topTracks);
-    
-    $api->addPlaylistTracks($playlist->id, $trackUris);
-    savePlaylist($userId, $playlist->id, $pdo);
-    $playlistId = $playlist->id;
-}
+$trackUris = array_map(function($track) {
+    return $track['uri'];
+}, $topTracks);
+
+$api->addPlaylistTracks($playlist->id, $trackUris);
+$playlistId = $playlist->id;
 ?>
 
 <!DOCTYPE html>
@@ -40,7 +35,7 @@ if (!$playlistId) {
             <button type="submit">Logout</button>
         </form>
     </div>
-    <h1>Shared Top Tracks by <?php echo $userName; ?></h1>
+    <h1>Shared Top Tracks by <?php echo htmlspecialchars($userName); ?></h1>
         <div id="spotify-iframe" style="margin: 20px 0;"></div>
     
     <div class="track-list">

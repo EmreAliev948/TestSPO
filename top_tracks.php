@@ -15,19 +15,34 @@ $playlistData = getPlaylist($_SESSION['userId'], $pdo);
 $playlistId = $playlistData ? $playlistData['spotify_playlist_id'] : null;
 
 if (!$playlistId) {
-    $playlist = $api->createPlaylist($user->id, [
-        'name' => 'My Top Tracks',
-        'description' => 'My personal top tracks playlist',
-        'public' => false,
-    ]);
+    $userPlaylists = $api->getUserPlaylists($user->id);
+    $existingPlaylist = null;
     
-    $trackUris = array_map(function($track) {
-        return $track->uri;
-    }, $topTracks->items);
+    foreach ($userPlaylists->items as $playlist) {
+        if ($playlist->name === 'My Top Tracks') {
+            $existingPlaylist = $playlist;
+            break;
+        }
+    }
     
-    $api->addPlaylistTracks($playlist->id, $trackUris);
-    savePlaylist($_SESSION['userId'], $playlist->id, $pdo);
-    $playlistId = $playlist->id;
+    if ($existingPlaylist) {
+        $playlistId = $existingPlaylist->id;
+    } else {
+        $playlist = $api->createPlaylist($user->id, [
+            'name' => 'My Top Tracks',
+            'description' => 'My personal top tracks playlist',
+            'public' => false,
+        ]);
+        
+        $trackUris = array_map(function($track) {
+            return $track->uri;
+        }, $topTracks->items);
+        
+        $api->addPlaylistTracks($playlist->id, $trackUris);
+        $playlistId = $playlist->id;
+    }
+    
+    savePlaylist($_SESSION['userId'], $playlistId, $pdo);
 }
 ?>
 
@@ -72,31 +87,9 @@ if (!$playlistId) {
         <?php endforeach; ?>
     </div>
 
-    <?php if (!$isPremium): ?>
     <script src="https://open.spotify.com/embed-podcast/iframe-api/v1"></script>
     <script>
-    window.onSpotifyIframeApiReady = (IFrameAPI) => {
-        const element = document.getElementById('iframe');
-        const options = {
-            width: '100%',
-            height: '352',
-            uri: 'spotify:playlist:<?php echo $playlist->id; ?>'
-        };
-        const callback = (EmbedController) => {
-            document.querySelectorAll('.track-item').forEach(track => {
-                track.addEventListener('click', () => {
-                    const uri = track.getAttribute('data-uri');
-                    EmbedController.loadUri(uri);
-                });
-            });
-        };
-        IFrameAPI.createController(element, options, callback);
-    };
-    </script>
-    <?php endif; ?>
-
-    <script src="https://open.spotify.com/embed-podcast/iframe-api/v1"></script>
-    <script>
+    let controller;
     window.onSpotifyIframeApiReady = (IFrameAPI) => {
         const element = document.getElementById('spotify-iframe');
         const options = {
@@ -105,17 +98,23 @@ if (!$playlistId) {
             uri: 'spotify:playlist:<?php echo $playlistId; ?>'
         };
         const callback = (EmbedController) => {
+            controller = EmbedController;
             document.querySelectorAll('.track-item').forEach(track => {
                 track.addEventListener('click', () => {
                     const uri = track.getAttribute('data-uri');
-                    EmbedController.loadUri(uri);
+                    controller.loadUri(uri);
                 });
             });
         };
         IFrameAPI.createController(element, options, callback);
     };
-    </script>
 
+    function updatePlayer(uri) {
+        if (controller) {
+            controller.loadUri(uri);
+        }
+    }
+    </script>
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
     <script>
         window.onSpotifyWebPlaybackSDKReady = () => {
