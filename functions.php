@@ -70,11 +70,11 @@ function displayShared($shareId)
         $db = getPDOConnection();
 
         $stmt = $db->prepare("
-            SELECT t.*, u.name as username, s.playlist_id 
-            FROM shared_tracks s
-            JOIN top_tracks t ON s.user_id = t.user_id 
-            JOIN users u ON s.user_id = u.id
-            WHERE s.share_id = ?
+            SELECT top_tracks.*, users.name as username, shared_tracks.playlist_id 
+            FROM shared_tracks 
+            JOIN top_tracks ON shared_tracks.user_id = top_tracks.user_id 
+            JOIN users ON shared_tracks.user_id = users.id
+            WHERE shared_tracks.share_id = ?
         ");
         $stmt->execute([$shareId]);
 
@@ -88,16 +88,6 @@ function displayShared($shareId)
         return false;
     }
 }
-
-function SpotifyEmbeded($trackUri)
-{
-    $trackId = str_replace('spotify:track:', '', $trackUri);
-
-    $embedUrl = "https://open.spotify.com/embed/track/" . $trackId;
-
-    return $embedUrl;
-}
-
 function savePlaylist($userId, $playlistId, $pdo)
 {
     try {
