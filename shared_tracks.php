@@ -12,11 +12,13 @@ $playlist = $api->createPlaylist($user->id, [
     'public' => false,
 ]);
 
-$trackUris = array_map(function($track) {
-    return $track['uri'];
-}, $topTracks);
+$trackUris = array_filter(array_map(function($track) {
+    return isset($track['uri']) ? $track['uri'] : null;
+}, $topTracks));
 
-$api->addPlaylistTracks($playlist->id, $trackUris);
+if (!empty($trackUris)) {
+    $api->addPlaylistTracks($playlist->id, $trackUris);
+}
 $playlistId = $playlist->id;
 ?>
 

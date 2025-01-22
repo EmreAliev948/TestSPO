@@ -34,11 +34,17 @@ if (!$playlistId) {
             'public' => false,
         ]);
         
-        $trackUris = array_map(function($track) {
-            return $track->uri;
-        }, $topTracks->items);
+        $trackUris = [];
+        foreach ($topTracks->items as $track) {
+            if (isset($track->uri)) {
+                $trackUris[] = $track->uri;
+            }
+        }
         
-        $api->addPlaylistTracks($playlist->id, $trackUris);
+        if (!empty($trackUris)) {
+            $api->addPlaylistTracks($playlist->id, $trackUris);
+        }
+        
         $playlistId = $playlist->id;
     }
     

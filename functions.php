@@ -28,15 +28,18 @@ function storeShared($topTracks, $userId, $spotifyId)
             'public' => false,
         ]);
 
-        $trackUris = array_map(function ($track) {
-            return $track->uri;
-        }, $topTracks->items);
-        $api->addPlaylistTracks($playlist->id, $trackUris);
+        $trackUris = array_filter(array_map(function ($track) {
+            return isset($track->uri) ? $track->uri : null;
+        }, $topTracks->items));
+        
+        if (!empty($trackUris)) {
+            $api->addPlaylistTracks($playlist->id, $trackUris);
+        }
 
         $stmt = $db->prepare("DELETE FROM top_tracks WHERE user_id = ?");
         $stmt->execute([$userId]);
         $stmt = $db->prepare("INSERT INTO top_tracks (user_id, name, artist, album, image_url, uri, playlist_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-
+        
         foreach ($topTracks->items as $track) {
             $stmt->execute([
                 $userId,
@@ -146,13 +149,18 @@ function createPopular($api)
             return false;
         }
 
+        $trackUris = array_filter(array_column($topTracks, 'uri'));
+        
+        if (empty($trackUris)) {
+            return false;
+        }
+        
         $playlist = $api->createPlaylist($_SESSION['spotifyId'], [
             'name' => 'Community Top Tracks',
             'description' => 'Top tracks from our community members',
             'public' => true
         ]);
 
-        $trackUris = array_column($topTracks, 'uri');
         $api->addPlaylistTracks($playlist->id, $trackUris);
 
         return $playlist->id;
