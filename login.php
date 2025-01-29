@@ -43,18 +43,42 @@ $authorizeUrl = $session->getAuthorizeUrl($options);
 <html>
 
 <head>
-    <title>Login</title>
-    <link rel="stylesheet" type="text/css" href="css/login.css">
-    <style>
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/header.css">
+    <title>Login - Spotify Top Tracks</title>
 </head>
 
 <body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-text">
+                <span class="music-note">♪</span>
+                <h1>Welcome to Top Music Charts</h1>
+                <p>Connect with Spotify to discover and share your favorite tracks</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav-container">
+        <div class="nav-content">
+            <div class="nav-left">
+                <span class="nav-link disabled">
+                    <span class="nav-icon">♪</span>
+                    My Top Tracks
+                </span>
+                <span class="nav-link disabled">
+                    <span class="nav-icon">☰</span>
+                    Top Charts
+                </span>
+            </div>
+        </div>
+    </div>
+
     <div class="login-container">
-        <h2>Login with Spotify</h2>
-        <a href="<?php echo $authorizeUrl; ?>">
-            <button class="login-button">Connect</button>
+        <div class="login-note">♪</div>
+        <h2>Get Started with Top Music Charts</h2>
+        <p>Connect your Spotify account to discover your top tracks, explore our user top chart, and share your music taste with friends.</p>
+        <a href="<?php echo $authorizeUrl; ?>" class="connect-spotify large">
+            Connect with Spotify
         </a>
     </div>
 </body>
