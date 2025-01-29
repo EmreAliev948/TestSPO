@@ -21,25 +21,19 @@ if (!empty($trackUris)) {
 }
 $playlistId = $playlist->id;
 
-// Add this right before the track-list div
 if (!empty($topTracks)) {
     echo '<!-- Debug information -->';
     echo '<!-- First track structure: -->';
     echo '<!-- ' . print_r($topTracks[0], true) . ' -->';
 }
 
-// Add this near the top of the file, after $topTracks is set
 if (!empty($topTracks)) {
     error_log('First track data: ' . print_r($topTracks[0], true));
 }
 
-// Add this near the top of the file
 if (!empty($topTracks)) {
     error_log('Track data structure: ' . print_r($topTracks[0], true));
     
-    // Debug output
-    echo '<!-- Track data structure: -->';
-    echo '<!-- ' . print_r($topTracks[0], true) . ' -->';
 }
 ?>
 
@@ -100,7 +94,6 @@ if (!empty($topTracks)) {
         }
     }
 
-    // Store IFrameAPI when it's ready
     window.onSpotifyIframeApiReady = (IFrameAPI) => {
         window.IFrameAPI = IFrameAPI;
         const element = document.getElementById('spotify-iframe');
@@ -118,7 +111,6 @@ if (!empty($topTracks)) {
             <?php foreach ($topTracks as $track): ?>
                 <div class="track-item" data-uri="<?php echo $track['uri'] ?? ''; ?>">
                     <?php 
-                    // Simplified image handling based on your data structure
                     $imageUrl = $track['image_url'] ?? '';
                     $trackName = $track['name'] ?? 'Unknown Track';
                     $artistName = $track['artist'] ?? 'Unknown Artist';
@@ -127,8 +119,7 @@ if (!empty($topTracks)) {
                     
                     <div class="track-image-container">
                         <?php if ($imageUrl): ?>
-                            <!-- Debug: Print the image URL -->
-                            <!-- Image URL: <?php echo $imageUrl; ?> -->
+                            <?php echo $imageUrl; ?>
                             <img class="track-image" src="<?php echo htmlspecialchars($imageUrl); ?>"
                                  alt="<?php echo htmlspecialchars($trackName); ?>"
                                  onclick="updatePlayer('<?php echo htmlspecialchars($track['uri'] ?? ''); ?>')">
@@ -140,8 +131,6 @@ if (!empty($topTracks)) {
                     <h2><?php echo htmlspecialchars($trackName); ?></h2>
                     <p>By <?php echo htmlspecialchars($artistName); ?></p>
                     <p>Album: <?php echo htmlspecialchars($albumName); ?></p>
-                    
-                    <!-- Add play button -->
                     <button class="play-button" onclick="updatePlayer('<?php echo htmlspecialchars($track['uri'] ?? ''); ?>')">
                         Play Track
                     </button>
