@@ -34,7 +34,6 @@
     </div>
 
     <div id="spotify-iframe"></div>
-    <!-- Add the same scripts as in shared_tracks.php -->
     <script src="https://open.spotify.com/embed-podcast/iframe-api/v1"></script>
     <script>
     function updatePlayer(uri) {

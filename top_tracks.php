@@ -3,7 +3,6 @@ $api = new SpotifyWebAPI\SpotifyWebAPI();
 $api->setAccessToken($_SESSION['accessToken']);
 
 $user = $api->me();
-$isPremium = ($user->product === 'premium');
 $shareLink = storeShared($topTracks, $_SESSION['userId'], $_SESSION['spotifyId']) ?? '#';
 if (!$shareLink) {
     $shareLink = '#';
@@ -74,7 +73,7 @@ if (!$playlistId) {
     <div class="nav-container">
         <div class="nav-content">
             <div class="nav-left">
-                <a href="#" onclick="showSharePopup('<?php echo $shareLink; ?>'); return false;" class="nav-link share-button">
+            <a href="#" onclick="showSharePopup('https://phpapp-446213.ew.r.appspot.com<?php echo $shareLink; ?>'); return false;" class="nav-link share-button">
                     <span class="nav-icon">↗</span>
                     Share
                 </a>
