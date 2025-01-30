@@ -40,7 +40,6 @@ try {
         include 'top_tracks.php';
     }
 } catch (Exception $e) {
-    error_log("API Error: " . $e->getMessage());
     header('Location: login.php');
     exit;
 }

@@ -21,20 +21,6 @@ if (!empty($trackUris)) {
 }
 $playlistId = $playlist->id;
 
-if (!empty($topTracks)) {
-    echo '<!-- Debug information -->';
-    echo '<!-- First track structure: -->';
-    echo '<!-- ' . print_r($topTracks[0], true) . ' -->';
-}
-
-if (!empty($topTracks)) {
-    error_log('First track data: ' . print_r($topTracks[0], true));
-}
-
-if (!empty($topTracks)) {
-    error_log('Track data structure: ' . print_r($topTracks[0], true));
-    
-}
 ?>
 
 <!DOCTYPE html>
@@ -119,7 +105,6 @@ if (!empty($topTracks)) {
                     
                     <div class="track-image-container">
                         <?php if ($imageUrl): ?>
-                            <?php echo $imageUrl; ?>
                             <img class="track-image" src="<?php echo htmlspecialchars($imageUrl); ?>"
                                  alt="<?php echo htmlspecialchars($trackName); ?>"
                                  onclick="updatePlayer('<?php echo htmlspecialchars($track['uri'] ?? ''); ?>')">
