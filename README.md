@@ -1,11 +1,21 @@
+Allow users to log in with their Spotify account
+Display their top tracks
+Create and share playlists
+View shared playlists from other users
+View community top charts
 
-Как да ръннете сайта.
-1. Инсталирайте XAMPP и Composer
-  https://getcomposer.org/
-  https://www.apachefriends.org/
-2. Ръннете XAMPP създайте в phpMyAdmin база данни с име spotifydb , копирайте информацията от прикачения файл в базата.
-3. Клонирайте гит репото в \xampp\htdocs
-3. Напишете composer require jwilsson/spotify-web-api-php в папката TestSPO в терминала.
-4. Изтеглете прикачения файл private.php и го сложете в папката.
-5. Ако искате си направете аpp в developers.spotify.com или ми кажете да ви добавя с имейл, ако не искате Вие да се занимавате.
-6. Отидете на http://localhost/testSPO/login.php и би трябвало да работи
+
+
+
+
+
+How to run the repo.
+1. Install XAMPP and Composer
+https://getcomposer.org/
+https://www.apachefriends.org/
+2. Start XAMPP, create a database named spotifydb in phpMyAdmin, copy the information from the attached files into the database.
+3. Clone the git repo to \xampp\htdocs
+3. Type composer require jwilsson/spotify-web-api-php in the TestSPO folder in the terminal.
+4. Download the attached private.php file and put it in the folder.
+5. If you want to make an application at developers.spotify.com or tell me to add an email with an email if you don't want to bother.
+6. Go to http://localhost/testSPO/login.php and it should work
