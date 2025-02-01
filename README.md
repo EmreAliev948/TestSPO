@@ -1,12 +1,16 @@
-Allow users to log in with their Spotify account
-Display their top tracks
-Create and share playlists
-View shared playlists from other users
-View community top charts
+A PHP web application that allows users to view their Spotify top tracks, share playlists, and discover community music charts.
 
+Core Features:
 
+	Spotify Authentication: Uses OAuth2 for secure Spotify login via login.php
 
+	Personal Top Tracks: Displays user's most played tracks from Spotify
 
+	Playlist Sharing: Generates shareable links for playlists
+
+	Community Charts: Aggregates top tracks from all users
+
+	Embedded Player: Integrates Spotify's Web Playback SDK
 
 
 How to run the repo.
